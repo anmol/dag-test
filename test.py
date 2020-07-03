@@ -1,41 +1,50 @@
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
-from datetime import datetime, timedelta
-
-
+from airflow.operators.python import PythonOperator
+from pprint import pprint
+from airflow.utils.dates import days_ago
+import time
 
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2020, 7, 3),
-    'email': ['anmol.gautam@traveloka.com'],
-    'email_on_failure': True,
-    'email_on_retry': False,
-    'retries': 1,
+    'start_date': days_ago(2),
 }
 
 dag = DAG(
     'dag-test',
     default_args=default_args,
-    schedule_interval='*/10 * * * *'  # every 10 mins
+    schedule_interval=None
 )
 
+# [START howto_operator_python]
+def print_context(ds, **kwargs):
+    """Print the Airflow context and ds variable from the context."""
+    pprint(kwargs)
+    print(ds)
+    return 'Whatever you return gets printed in the logs'
 
-def simple_task(task_id):
-    print(task_id)
-
-
-task_1 = PythonOperator(
-    task_id='task_1',
-    python_callable=simple_task,
-    op_kwargs={'task_id': 1},
-    dag=dag
+run_this = PythonOperator(
+    task_id='print_the_context',
+    python_callable=print_context,
+    dag=dag,
 )
+# [END howto_operator_python]
 
-task_2 = PythonOperator(
-    task_id='task_2',
-    python_callable=simple_task,
-    op_kwargs={'task_id': 2},
-    dag=dag
-)
 
-task_2.set_upstream(task_1)
+# [START howto_operator_python_kwargs]
+def my_sleeping_function(random_base):
+    """This is a function that will run within the DAG execution"""
+    time.sleep(random_base)
+
+
+# Generate 5 sleeping tasks, sleeping from 0.0 to 0.4 seconds respectively
+for i in range(5):
+    task = PythonOperator(
+        task_id='sleep_for_' + str(i),
+        python_callable=my_sleeping_function,
+        op_kwargs={'random_base': float(i) / 10},
+        dag=dag,
+    )
+
+    run_this >> task
+# [END howto_operator_python_kwargs]
+
