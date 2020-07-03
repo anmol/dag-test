@@ -1,5 +1,8 @@
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
+from datetime import datetime, timedelta
+
+
 
 default_args = {
     'owner': 'airflow',
@@ -24,14 +27,14 @@ def simple_task(task_id):
 task_1 = PythonOperator(
     task_id='task_1',
     python_callable=simple_task,
-    op_kwargs={'task_id': task_id},
+    op_kwargs={'task_id': 1},
     dag=dag
 )
 
 task_2 = PythonOperator(
     task_id='task_2',
     python_callable=simple_task,
-    op_kwargs={'task_id': task_id},
+    op_kwargs={'task_id': 2},
     dag=dag
 )
 
