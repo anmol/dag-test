@@ -1,6 +1,22 @@
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 
+default_args = {
+    'owner': 'airflow',
+    'start_date': datetime(2020, 7, 3),
+    'email': ['anmol.gautam@traveloka.com'],
+    'email_on_failure': True,
+    'email_on_retry': False,
+    'retries': 1,
+}
+
+dag = DAG(
+    'dag-test',
+    default_args=default_args,
+    schedule_interval='*/10 * * * *'  # every 10 mins
+)
+
+
 def simple_task(task_id):
     print(task_id)
 
